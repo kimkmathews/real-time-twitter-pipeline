@@ -1,0 +1,10 @@
+Dockerfile
+scripts/authenticate_docker.py
+scripts/load_to_dynamodb.py
+*.csv 
+*.zip
+.env
+pycache/ *.pyc
+.vscode/ .idea/
+lambda_package/
+data/training.1600000.processed.noemoticon.csv
