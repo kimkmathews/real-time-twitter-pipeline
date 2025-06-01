@@ -88,7 +88,7 @@ This project implements a real-time data pipeline to process tweet data using AW
           }
       ]
   }  
- ``` 
+```
 - Run the test and verify the `statusCode: 200` response.
 - Check the `tweets` DynamoDB table for new items with attributes like `tweet_id`, `text`, `sentiment`, `timestamp`, and `hashtags`.
 ### 8. Query Sentiment Analysis
