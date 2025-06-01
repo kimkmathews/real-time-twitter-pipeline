@@ -4,7 +4,7 @@ import time
 import os
 from dotenv import load_dotenv
 
-     # Load environment variables
+# Load environment variables
 load_dotenv()
 
 # AWS credentials from .env
@@ -26,14 +26,15 @@ def upload_to_s3(df, batch_id):
     os.remove(file_name)
 
 def main():
-    # Load subset of dataset for free-tier limits
-    df = pd.read_csv('data/training.1600000.processed.noemoticon.csv', 
-                     names=['target', 'id', 'date', 'flag', 'user', 'text'], 
-                     nrows=10000)
-    
+    # Load the full dataset with correct encoding and randomly sample 10,000 rows
+    df_full = pd.read_csv('data/training.1600000.processed.noemoticon.csv', 
+                         names=['target', 'id', 'date', 'flag', 'user', 'text'],
+                         encoding='latin-1')
+    df_sampled = df_full.sample(n=10000, random_state=42)  # random_state for reproducibility
+
     # Split into batches
-    for i in range(0, len(df), BATCH_SIZE):
-        batch_df = df[i:i + BATCH_SIZE]
+    for i in range(0, len(df_sampled), BATCH_SIZE):
+        batch_df = df_sampled[i:i + BATCH_SIZE]
         upload_to_s3(batch_df, i // BATCH_SIZE)
         time.sleep(1)  # Simulate real-time streaming
 

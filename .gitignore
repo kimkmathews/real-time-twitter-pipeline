@@ -8,3 +8,4 @@ pycache/ *.pyc
 .vscode/ .idea/
 lambda_package/
 data/training.1600000.processed.noemoticon.csv
+venv/
