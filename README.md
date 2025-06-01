@@ -61,7 +61,16 @@ This project implements a real-time data pipeline to process tweet data using AW
   - Prefix: `raw/`.
 - Enable the trigger.
 
-### 6. Test the Pipeline
+### 6. Ingest Data
+- - Before running `data_ingestion.py`, ensure the S3 trigger is configured in the Lambda Console for `twitter-sentiment-raw-yourname` with prefix `raw/`.
+- Run the data ingestion script to upload a random sample of tweets to S3:
+  ```bash
+  python scripts/ingest_data.py
+  ```
+- The script randomly samples 10,000 rows from data/training.1600000.processed.noemoticon.csv (using encoding='latin-1' to handle the file’s encoding), batches them into 100-row files, and uploads to s3://twitter-sentiment-raw-yourname/raw/.
+- The script uses time.sleep(2) between uploads to ensure reliable triggering.
+- Note: S3 triggers only process files uploaded after the trigger is created. Re-upload files if the trigger was added later.
+### 7. Test the Pipeline
 - Upload a sample CSV file to `s3://twitter-sentiment-raw-yourname/raw/` (e.g., `tweets_batch_0.csv`).
 - In the Lambda Console, create a test event using the `S3TestEvent` template:
   ```json
@@ -79,9 +88,23 @@ This project implements a real-time data pipeline to process tweet data using AW
           }
       ]
   }  
-  
+ ``` 
 - Run the test and verify the `statusCode: 200` response.
 - Check the `tweets` DynamoDB table for new items with attributes like `tweet_id`, `text`, `sentiment`, `timestamp`, and `hashtags`.
+### 8. Query Sentiment Analysis
+- Run the query_sentiment.py script to analyze the sentiment distribution of tweets stored in DynamoDB:
+```bash
+python scripts/query_sentiment.py
+```
+- The script queries the tweets table and calculates the percentage of positive, negative, and neutral tweets.
+- Example output:
+```bash
+Final Sentiment Analysis:
+Total Tweets: 10000
+Positive Tweets: 4996 (50.0%)
+Neutral Tweets: 0 (0.0%)
+Negative Tweets: 5004 (50.0%)
+```
 
 ## Data Format
 - **Input (S3 CSV):**
@@ -103,3 +126,10 @@ This project implements a real-time data pipeline to process tweet data using AW
 - **Lambda Errors**: Check CloudWatch Logs for detailed error messages.
 - **S3 Trigger Issues**: Ensure the prefix (`raw/`) matches and there are no overlapping event rules in S3.
 - **DynamoDB Issues**: Verify the table name and region (`us-east-1`).
+
+### Planned Upgrades
+To enhance the pipeline and make it more real-world relevant, the following upgrades are planned:
+
+- **Machine Learning Integration:** Build a machine learning model to predict tweet sentiment using the text column as input and the target column (mapped to sentiment) as the label. The model will be trained locally or on an EC2 instance to avoid SageMaker costs.
+- **Flask App for Visualization and Testing:** Develop a Flask web application to serve sentiment predictions and visualize sentiment trends. The app will allow users to input new tweets and receive predicted sentiments, and it will be deployed on an EC2 instance with dynamic start/stop to manage costs.
+- **Analytics and Visualizations:** Add analytics using Amazon Athena to query DynamoDB data (via export to S3) and visualize sentiment trends with Amazon QuickSight, if within the 30-day trial period.
